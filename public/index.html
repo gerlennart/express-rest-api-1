@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiere</title>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <script src="bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Tiere</h1>
+        <div id="app">
+            <!-- Sortierkriterium -->
+            <div class="border p-3 mb-3">
+                <label class="form-label" for="selectSort">Sortieren nach</label>
+                <select v-model="sortCategory" class="form-select" id="selectSort">
+                    <option value="spezies">Spezies (Z-A)</option>
+                    <option value="farbe">Farbe (Z-A)</option>
+                </select>
+            </div>
+
+            <!-- Tabelle -->
+            <table class="table">
+                <tr>
+                    <th v-if="debug">id</th>
+                    <th>Spezies</th>
+                    <th>Farbe</th>
+                    <th>Telefon</th>
+                    <th>Säugetier</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                <tr v-for="tier in tiere">
+                    <td v-if="debug">{{tier.id}}</td>
+                    <td>{{tier.spezies}}</td>
+                    <td>{{tier.farbe}}</td>
+                    <td><a :href="telefonumrechnung(tier.telefon)">{{tier.telefon}}</td>
+                    <td>{{boolToJaNein(tier.saeugetier)}}</td>
+                    <td><button @click="buttonDeleteClick(tier)" class="btn btn-sm btn-danger">Löschen</button>
+                    </td>
+                    <td><button @click="buttonUpdateClick(tier)" class="btn btn-sm btn-success">Update</button></td>
+                </tr>
+            </table>
+
+            <!-- Hinzufügen-Button -->
+            <button class="btn btn-primary" @click="buttonCreateClick">Hinzufügen</button>
+
+            <!-- Modal Create -->
+            <div ref="createModal" class="modal fade" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+                            <h5 class="modal-title">Tier hinzufügen</h5>
+                            <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <label class="form-label" for="inputSpezies">Spezies</label>
+                            <input id="inputSpezies" class="form-control mb-3" v-model="createTierObject.spezies"
+                                type="text">
+
+                            <label class="form-label" for="inputFarbe">Farbe</label>
+                            <input id="inputFarbe" class="form-control mb-3" v-model="createTierObject.farbe"
+                                type="text">
+
+                            <label class="form-label" for="inputTelefon">Telefon</label>
+                            <input id="inputTelefon" class="form-control mb-3" v-model="createTierObject.telefon"
+                                type="tel">
+
+                            <div class="form-check form-switch">
+                                <label class="form-check-label" for="checkSaeugetier">Säugetier</label>
+                                <input id="checkSaeugetier" class="form-check-input"
+                                    v-model="createTierObject.saeugetier" type="checkbox">
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                            <button @click="buttonCreateSpeichernClick" class="btn btn-primary">Speichern</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Update-->
+            <div ref="updateModal" class="modal fade" tabindex="-1" aria-labelledby="updateModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="updateModalLabel">Tier ändern</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <label class="form-label" for="inputUpdateSpezies">Spezies</label>
+                            <input id="inputUpdateSpezies" class="form-control mb-3" v-model="updateTierObject.spezies"
+                                type="text">
+
+                            <label class="form-label" for="inputUpdateFarbe">Farbe</label>
+                            <input id="inputUpdateFarbe" class="form-control mb-3" v-model="updateTierObject.farbe"
+                                type="text">
+
+                            <label class="form-label" for="inputUpdateTelefon">Telefon</label>
+                            <input id="inputUpdateTelefon" class="form-control mb-3" v-model="updateTierObject.telefon"
+                                type="tel">
+
+                            <div class="form-check form-switch">
+                                <label class="form-check-label" for="checkUpdateSaeugetier">Säugetier</label>
+                                <input id="checkUpdateSaeugetier" class="form-check-input"
+                                    v-model="updateTierObject.saeugetier" type="checkbox">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                            <button @click="buttonUpdateSpeichernClick" type="button"
+                                class="btn btn-primary">Speichern</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Delete -->
+            <div ref="deleteModal" class="modal fade" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+                            <h5 class="modal-title">Tier löschen</h5>
+                            <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            Wollen Sie wirklich das Tier {{deleteTierObject.spezies}} löschen?
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                            <button @click="buttonDeleteConfirmClick" class="btn btn-danger">Löschen</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vue.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
